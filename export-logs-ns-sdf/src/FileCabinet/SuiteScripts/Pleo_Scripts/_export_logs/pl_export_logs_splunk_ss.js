@@ -7,32 +7,117 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
         (log, https, url, encode, search) => {
 
         const execute = (context) => {
+
             const stLogTitle = 'pl_export_logs_splunk_ss.js -';
 
-            //try {
+            try {
                 log.debug(stLogTitle, 'context: ' + JSON.stringify(context));
-
                 exportLogsLogic(context);
-
-            //} catch (e) {
-              //  log.error(stLogTitle, e);
-                //throw stLogTitle + 'Error: ' + e.message + ' - Contact NetSuite Administrator'
-            //}
+            } catch (e) {
+               log.error(stLogTitle, e);
+               throw stLogTitle + 'Error: ' + e.message + ' - Contact NetSuite Administrator'
+            }
 
         }
 
 
         function exportLogsLogic(context) {
 
-            getLogsFromNetSuite(context);
-
+            var systemNotesJson = getSystemNotesLogsFromNS(context);
+            var loginAuditTrailJson = getLoginAuditTrailFromNS(context);
         }
 
 
-        function getLogsFromNetSuite(context) {
+        function getLoginAuditTrailFromNS(context) {
+
+            var employeeSearchObj = search.create({
+                type: "employee",
+                filters:
+                    [
+                        ["loginaudittrail.date","within","today"] //yesterday
+                    ],
+                columns:
+                    [
+                        search.createColumn({
+                            name: "emailaddress",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "date",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "detail",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "ipaddress",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "requesturi",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "role",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "secchallenge",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "status",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "oauthaccesstokenname",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "oauthappname",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "user",
+                            join: "loginAuditTrail"
+                        }),
+                        search.createColumn({
+                            name: "useragent",
+                            join: "loginAuditTrail"
+                        })
+                    ]
+            });
+
+            var arrColumns = employeeSearchObj.columns;
+            arrColumns = JSON.parse(JSON.stringify(arrColumns));
+            log.debug("arrColumns arrColumns", arrColumns);
+
+
+            var loginAuditTrailLogs = [];
+
+            employeeSearchObj.run().each(function(result) {
+
+                    var objTemp = {};
+
+                    for (var c = 0; c < arrColumns.length; c++) {
+                        objTemp[arrColumns[c].name] = result.getValue(arrColumns[c].name, arrColumns[c].join);
+                    }
+
+                    loginAuditTrailLogs.push(objTemp)
+
+                    return true;
+                });
+
+                log.debug("loginAuditTrail logs", loginAuditTrailLogs);
+
+                return loginAuditTrailLogs;
+        }
+
+
+        function getSystemNotesLogsFromNS(context) {
 
             // System Notes
-
             var systemnoteSearchObj = search.create({
                 type: "systemnote",
                 filters:
@@ -65,7 +150,6 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
             var systemNotelogs = [];
 
             systemnoteSearchObj.run().each(function(result){
-                //systemNotelogs = systemNotelogs + result;
 
                 var objTemp = {};
 
@@ -80,7 +164,9 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
 
             log.debug("system Note logs", systemNotelogs);
 
+            return systemNotelogs;
         }
+
 
             return {execute};
 });
