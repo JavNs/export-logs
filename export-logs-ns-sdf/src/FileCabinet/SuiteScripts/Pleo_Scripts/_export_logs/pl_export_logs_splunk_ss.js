@@ -37,7 +37,7 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
                 type: "systemnote",
                 filters:
                     [
-                        ["date","within","lastbusinessweek"]
+                        ["date","within","today"]
                     ],
                 columns:
                     [
