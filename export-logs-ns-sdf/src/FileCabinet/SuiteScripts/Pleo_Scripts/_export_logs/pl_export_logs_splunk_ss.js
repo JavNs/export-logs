@@ -98,16 +98,25 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
 
             employeeSearchObj.run().each(function(result) {
 
-                    var objTemp = {};
+                var objTemp = {
+                    emailaddress : result.getValue({name: "emailaddress",join: "loginAuditTrail"}),
+                    date : result.getValue({name: "date",join: "loginAuditTrail"}),
+                    detail : result.getValue({name: "detail",join: "loginAuditTrail"}),
+                    ipaddress : result.getValue({name: "ipaddress",join: "loginAuditTrail"}),
+                    requesturi : result.getValue({name: "requesturi",join: "loginAuditTrail"}),
+                    role : result.getValue({name: "role",join: "loginAuditTrail"}),
+                    secchallenge : result.getValue({name: "secchallenge",join: "loginAuditTrail"}),
+                    status : result.getValue({name: "status",join: "loginAuditTrail"}),
+                    oauthaccesstokenname : result.getValue({name: "oauthaccesstokenname",join: "loginAuditTrail"}),
+                    oauthappname : result.getValue({name: "oauthappname",join: "loginAuditTrail"}),
+                    user : result.getValue({name: "user",join: "loginAuditTrail"}),
+                    useragent : result.getValue({name: "useragent",join: "loginAuditTrail"})
+                }
 
-                    for (var c = 0; c < arrColumns.length; c++) {
-                        objTemp[arrColumns[c].name] = result.getValue(arrColumns[c].name, arrColumns[c].join);
-                    }
+                loginAuditTrailLogs.push(objTemp)
 
-                    loginAuditTrailLogs.push(objTemp)
-
-                    return true;
-                });
+                return true;
+            });
 
                 log.debug("loginAuditTrail logs", loginAuditTrailLogs);
 
