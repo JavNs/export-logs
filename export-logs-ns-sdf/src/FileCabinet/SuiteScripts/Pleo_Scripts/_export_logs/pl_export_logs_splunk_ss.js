@@ -25,6 +25,61 @@ define(['N/log', 'N/https', 'N/url', 'N/encode', 'N/search'],
 
             var systemNotesJson = getSystemNotesLogsFromNS(context);
             var loginAuditTrailJson = getLoginAuditTrailFromNS(context);
+
+            sendLogsToSplunk(systemNotesJson, loginAuditTrailJson);
+        }
+
+        function sendLogsToSplunk(systemNotesJson, loginAuditTrailJson) {
+
+            // This function will send the logs to Splunk
+
+            // Define your Splunk HEC endpoint and token
+            var splunkEndpoint = 'https://your-splunk-hec-url';
+            var splunkToken = 'your-splunk-hec-token';
+
+            // Convert JSON objects to string
+            var systemNotesString = JSON.stringify(systemNotesJson);
+            var loginAuditTrailString = JSON.stringify(loginAuditTrailJson);
+
+            // Define headers for the HTTP request
+            var headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Splunk ' + splunkToken
+            };
+
+            // Create a payload for system notes
+            var systemNotesPayload = {
+                event: systemNotesString
+            };
+
+            // Create a payload for login audit trail
+            var loginAuditTrailPayload = {
+                event: loginAuditTrailString
+            };
+
+            // Send system notes to Splunk
+            var systemNotesResponse = https.post({
+                url: splunkEndpoint,
+                headers: headers,
+                body: JSON.stringify(systemNotesPayload)
+            });
+
+            // Send login audit trail to Splunk
+            var loginAuditTrailResponse = https.post({
+                url: splunkEndpoint,
+                headers: headers,
+                body: JSON.stringify(loginAuditTrailPayload)
+            });
+
+            // Check if both requests were successful
+            if (systemNotesResponse.code === 200 && loginAuditTrailResponse.code === 200) {
+                // Logs sent successfully
+                return true;
+            } else {
+                // Logs failed to send
+                return false;
+            }
+
         }
 
 
